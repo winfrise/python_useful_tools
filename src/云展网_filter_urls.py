@@ -1,5 +1,13 @@
 import re
 
+# 获取云展网url txt的方法：
+# 1. 打开Chrome的开发者工具（F12）
+# 2. 关闭断点
+# 3. 在浏览器地址栏重新输入url，并回车（这是重点，一定要重新输入url，不要用刷新）
+# 4. 把所有页面浏览一遍（为了收集图片请求）
+# 5. 在某一个请求链接上【右键】，-> 【Copy】-> 【Copy all listed URLs】
+# 6. 粘贴到txt中
+
 def filter_and_extract_urls(input_txt_path, output_txt_path, pattern_str):
     """
     过滤并提取特定格式的URL片段。

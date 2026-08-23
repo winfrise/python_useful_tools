@@ -1,6 +1,7 @@
 import os
 import requests
 from urllib.parse import urlparse
+from datetime import datetime
 
 
 def download_images(txt_file_path):
@@ -12,7 +13,8 @@ def download_images(txt_file_path):
     """
     # 1. 确定txt文件的目录和输出文件夹路径
     txt_dir = os.path.dirname(os.path.abspath(txt_file_path))  # txt所在目录的绝对路径
-    output_dir = os.path.join(txt_dir, "download_pic")         # 输出文件夹路径（txt目录下）
+    timestamp = datetime.now().strftime("%Y年%m月%d日%H时%M分%S秒")
+    output_dir = os.path.join(txt_dir, f"download_pic_{timestamp}")         # 输出文件夹路径（txt目录下）
 
     # 2. 创建输出文件夹（若不存在）
     if not os.path.exists(output_dir):
@@ -30,14 +32,8 @@ def download_images(txt_file_path):
     # 4. 逐个下载图片
     for idx, url in enumerate(urls, 1):
         try:
-            # 解析URL获取文件名（取最后一个路径段，如 "abc.webp"）
-            parsed_url = urlparse(url)
-            filename = os.path.basename(parsed_url.path)
 
-            # 若URL无有效文件名，用索引兜底命名
-            if not filename:
-                ext = ".jpg"  # 默认扩展名（可根据需求调整）
-                filename = f"image_{idx}{ext}"
+            filename = f"image_{idx}.webp"
 
             # 构造本地保存路径
             save_path = os.path.join(output_dir, filename)

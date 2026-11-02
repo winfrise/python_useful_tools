@@ -4,18 +4,51 @@ from pathlib import Path
 import re
 
 
-def rename_files(src_dir, dst_dir, name_func):
+def _natural_key(name: str):
+    """自然排序 key：把字符串按数字片段拆分后比较，如 file2 < file10"""
+    return [
+        int(t) if t.isdigit() else t.lower()
+        for t in re.split(r"(\d+)", name)
+    ]
+
+
+def _resolve_conflict(dst_file: Path) -> Path:
+    """目标文件已存在时，自动追加 _1、_2 ... 后缀"""
+    if not dst_file.exists():
+        return dst_file
+    stem, suffix = os.path.splitext(dst_file.name)
+    i = 1
+    while True:
+        candidate = dst_file.parent / f"{stem}_{i}{suffix}"
+        if not candidate.exists():
+            return candidate
+        i += 1
+
+
+def rename_files(src_dir, dst_dir, name_func, mode=1):
     """
-    遍历源文件夹第一层中的所有文件（不递归子文件夹），
-    使用自定义函数生成新文件名后保存到目标文件夹。
+    批量重命名文件并保存到目标文件夹。
 
     :param src_dir:  源文件夹路径
     :param dst_dir:  目标文件夹路径
-    :param name_func: 自定义命名函数，签名为 name_func(original_name, index) -> new_name
-                       - original_name: 原始文件名（含扩展名）
-                       - index: 自然排序后的索引
-                       - 返回值: 新的文件名（含扩展名），返回 None 或空串则跳过
+    :param name_func: 自定义命名函数。
+                      - mode=1 时签名: name_func(original_name, index) -> new_name
+                      - mode=2 时签名: name_func(folder_name, folder_index,
+                                                  original_name, file_index) -> new_name
+                      返回值若为 None 或空串，则跳过该文件
+    :param mode: 模式选择
+                 - 1: 只遍历 src_dir 第一层的文件
+                 - 2: 遍历 src_dir 下的子文件夹（自然排序），
+                      再按顺序遍历每个子文件夹中的文件（自然排序）；
+                      调用 name_func 时传入:
+                        folder_name  - 当前文件所在子文件夹名称
+                        folder_index - 子文件夹的自然排序索引（从 0 开始）
+                        original_name- 原始文件名（含扩展名）
+                        file_index   - 文件在**当前子文件夹内**的自然排序索引（从 0 开始）
     """
+    if mode not in (1, 2):
+        raise ValueError(f"mode 只能是 1 或 2，当前为: {mode}")
+
     src_path = Path(src_dir).resolve()
     dst_path = Path(dst_dir).resolve()
 
@@ -24,47 +57,72 @@ def rename_files(src_dir, dst_dir, name_func):
 
     dst_path.mkdir(parents=True, exist_ok=True)
 
-    # ---------- 1. 收集 src_dir 第一层的文件（跳过以点开头的文件） ----------
-    all_files = [
+    if mode == 1:
+        _run_mode1(src_path, dst_path, name_func)
+    else:
+        _run_mode2(src_path, dst_path, name_func)
+
+
+# ============================================================
+# 模式 1：只遍历 src_dir 第一层的文件
+# ============================================================
+def _run_mode1(src_path: Path, dst_path: Path, name_func):
+    files = [
         f for f in src_path.iterdir()
         if f.is_file() and not f.name.startswith(".")
     ]
+    files.sort(key=lambda p: _natural_key(p.name))
 
-    # ---------- 2. 自然排序 ----------
-    def natural_key(path: Path):
-        # 只对文件名做自然排序
-        return [
-            int(t) if t.isdigit() else t.lower()
-            for t in re.split(r"(\d+)", path.name)
-        ]
-
-    all_files.sort(key=natural_key)
-
-    # ---------- 3. 逐个重命名并保存 ----------
-    for idx, src_file in enumerate(all_files, start=0):
+    for idx, src_file in enumerate(files, start=0):
         original_name = src_file.name
-        new_name = name_func(original_name, idx)
-
-        # 命名函数返回 None 或空串 -> 跳过
+        new_name = name_func("", "",original_name, idx)
         if not new_name:
             continue
 
-        dst_file = dst_path / new_name
-
-        # 处理同名冲突（自动加数字后缀）
-        if dst_file.exists():
-            stem, suffix = os.path.splitext(new_name)
-            i = 1
-            while True:
-                candidate = dst_path / f"{stem}_{i}{suffix}"
-                if not candidate.exists():
-                    dst_file = candidate
-                    break
-                i += 1
-
+        dst_file = _resolve_conflict(dst_path / new_name)
         shutil.copy2(src_file, dst_file)
-
         print(f"[{idx}] 原文件名: {original_name}  ->  新文件名: {dst_file.name}")
+
+
+# ============================================================
+# 模式 2：按子文件夹自然排序后，逐个遍历子文件夹里的文件
+# ============================================================
+def _run_mode2(src_path: Path, dst_path: Path, name_func):
+    # 1. 收集并自然排序子文件夹（跳过以点开头的文件夹）
+    subfolders = [
+        d for d in src_path.iterdir()
+        if d.is_dir() and not d.name.startswith(".")
+    ]
+    subfolders.sort(key=lambda p: _natural_key(p.name))
+
+    # 2. 按顺序遍历每个子文件夹里的文件
+    for folder_index, subfolder in enumerate(subfolders, start=0):
+        folder_name = subfolder.name
+
+        files = [
+            f for f in subfolder.iterdir()
+            if f.is_file() and not f.name.startswith(".")
+        ]
+        files.sort(key=lambda p: _natural_key(p.name))
+
+        # 目标子文件夹（保持子文件夹层级）
+        dst_subfolder = dst_path / folder_name
+        dst_subfolder.mkdir(parents=True, exist_ok=True)
+
+        for file_index, src_file in enumerate(files, start=0):
+            original_name = src_file.name
+            new_name = name_func(folder_name, folder_index, original_name, file_index)
+
+            if not new_name:
+                continue
+
+            dst_file = _resolve_conflict(dst_subfolder / new_name)
+            shutil.copy2(src_file, dst_file)
+            print(
+                f"[folder={folder_index}][file={file_index}] "
+                f"子文件夹: {folder_name} | "
+                f"原文件名: {original_name}  ->  新文件名: {dst_file.name}"
+            )
 
 
 # ============================================================
@@ -72,22 +130,33 @@ def rename_files(src_dir, dst_dir, name_func):
 # ============================================================
 if __name__ == "__main__":
 
-    # 示例 1: 顺序命名 image_0.jpg, image_1.jpg ...
-    def seq_namer(original_name, index):
+    # ---------- 模式 1 的命名函数 ----------
+    def seq_namer(folder_name, folder_index, original_name, index):
         ext = os.path.splitext(original_name)[1]
-        return f"image_{index}{ext}"
+        return f"image_{30+index}{ext}"
 
-    # 示例 2: 保留原名加后缀
-    def prefix_namer(original_name, index):
-        stem, ext = os.path.splitext(original_name)
-        return f"{stem}_renamed_{index}{ext}"
+    # ---------- 模式 2 的命名函数 ----------
+    # 使用 文件夹索引 + 文件夹名 + 文件索引 构建新名称
+    # 例如: 0001_20240101_0001.jpg
+    def subfolder_namer(folder_name, folder_index, original_name, file_index):
+        print(folder_name, folder_index)
+        ext = os.path.splitext(original_name)[1]
+        return f"{folder_index:04d}_{folder_name}_{file_index:04d}{ext}"
 
-    # 示例 3: 统一加前缀
-    def simple_prefix(original_name, index):
-        return f"NEW_{original_name}"
+    # 只保留 文件夹名 + 文件夹索引 + 文件索引，丢弃原名
+    def subfolder_compact_namer(folder_name, folder_index, original_name, file_index):
+        ext = os.path.splitext(original_name)[1]
+        new_index = (folder_index * 30) + file_index
+        return f"IMAGE_{ new_index }{ext}"
 
+    # ---------- 调用 ----------
+    # 模式 1
+    # rename_files("./source_folder", "./target_folder", seq_namer, mode=1)
+
+    # 模式 2
     rename_files(
         src_dir="/Users/teacher/Downloads/test/test001",
-        dst_dir="/Users/teacher/Downloads/test/test002",
-        name_func=seq_namer,
+        dst_dir="/Users/teacher/Downloads/test/test003",
+        name_func=subfolder_compact_namer,
+        mode=2,
     )

@@ -129,34 +129,27 @@ def _run_mode2(src_path: Path, dst_path: Path, name_func):
 # 使用示例
 # ============================================================
 if __name__ == "__main__":
-
     # ---------- 模式 1 的命名函数 ----------
-    def seq_namer(folder_name, folder_index, original_name, index):
+    def name_func_mode_1(folder_name, folder_index, original_name, index):
         ext = os.path.splitext(original_name)[1]
-        return f"image_{30+index}{ext}"
+        return f"image_{index}{ext}"
 
     # ---------- 模式 2 的命名函数 ----------
-    # 使用 文件夹索引 + 文件夹名 + 文件索引 构建新名称
-    # 例如: 0001_20240101_0001.jpg
-    def subfolder_namer(folder_name, folder_index, original_name, file_index):
-        print(folder_name, folder_index)
+    # 索引从0开始
+    def name_func_mode_2(folder_name, folder_index, original_name, file_index):
         ext = os.path.splitext(original_name)[1]
-        return f"{folder_index:04d}_{folder_name}_{file_index:04d}{ext}"
+        new_index = (folder_index * 30) + file_index + 1
+        return f"image{ new_index }{ext}"
 
-    # 只保留 文件夹名 + 文件夹索引 + 文件索引，丢弃原名
-    def subfolder_compact_namer(folder_name, folder_index, original_name, file_index):
-        ext = os.path.splitext(original_name)[1]
-        new_index = (folder_index * 30) + file_index
-        return f"IMAGE_{ new_index }{ext}"
 
-    # ---------- 调用 ----------
-    # 模式 1
-    # rename_files("./source_folder", "./target_folder", seq_namer, mode=1)
-
+    src_dir = "/Users/teacher/Downloads/260张图片去水印/001"
+    dst_dir = f"{src_dir}_重命名"
+    mode = 2
+    name_func = name_func_mode_1 if mode == 1 else name_func_mode_2
     # 模式 2
     rename_files(
-        src_dir="/Users/teacher/Downloads/test/test001",
-        dst_dir="/Users/teacher/Downloads/test/test003",
-        name_func=subfolder_compact_namer,
+        src_dir=src_dir,
+        dst_dir=dst_dir,
+        name_func=name_func,
         mode=2,
     )

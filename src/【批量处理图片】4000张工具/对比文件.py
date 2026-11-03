@@ -207,8 +207,8 @@ def print_report(result: Dict[str, Any]) -> None:
 
 if __name__ == "__main__":
     # 示例 1：基础对比（文件大小 + 图片宽高 + MD5）
-    folder_a = "/Users/teacher/Downloads/260张图片去水印_扁平化_还原目录"
-    folder_b = "/Users/teacher/Downloads/260张图片去水印"
+    folder_a = "/Users/teacher/Downloads/260张图片去水印_扁平化_还原目录/001"
+    folder_b = "/Users/teacher/Downloads/260张图片去水印_扁平化_还原目录/002"
     # attributes=["size", "dimensions", "md5"]
     attributes = ["dimensions"]
     custom_attributes = {}

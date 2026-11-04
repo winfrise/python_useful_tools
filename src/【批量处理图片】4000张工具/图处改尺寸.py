@@ -135,11 +135,11 @@ def resize_images_by_reference(folder1: str, folder2: str, folder3: str):
 
 
 if __name__ == "__main__":
-    folder1 = "/Users/teacher/Downloads/260张图片去水印_扁平化_还原目录/001"
-    folder2 = "/Users/teacher/Downloads/260张图片去水印_扁平化_还原目录/002"
-    folder3 = "/Users/teacher/Downloads/260张图片去水印_扁平化_还原目录/003"
+    source_folder = "/Users/teacher/Downloads/Canvas_20261104_13时01分43秒/001_output_png"
+    size_folder = "/Users/teacher/Downloads/吃早点/原2"
+    output_folder = f"{source_folder}_size"
     resize_images_by_reference(
-        folder1=folder1,
-        folder2=folder2,
-        folder3=folder3
+        folder1=source_folder,
+        folder2=size_folder,
+        folder3=output_folder
     )

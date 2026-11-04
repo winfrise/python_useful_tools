@@ -73,12 +73,64 @@ def flatten_directory(src_dir: str, dst_dir: str, separator: str = '-') -> None:
             print(f"    {src} -> {os.path.basename(dst)}")
 
 
+def flatten_batch(src_dir: str, separator: str = '-') -> None:
+    """
+    批量处理：对 src_dir 下的每个子文件夹执行扁平化操作。
+    输出目录为子文件夹所在位置，文件夹名为 子文件夹名_扁平化。
+    
+    Args:
+        src_dir: 包含多个子文件夹的根目录
+        separator: 自定义分隔符
+    """
+    if not os.path.isdir(src_dir):
+        raise ValueError(f"源文件夹不存在或不是文件夹: {src_dir}")
+    
+    src_dir_abs = os.path.abspath(src_dir)
+    
+    # 获取所有子文件夹（只取第一层）
+    sub_dirs = [
+        d for d in os.listdir(src_dir_abs)
+        if os.path.isdir(os.path.join(src_dir_abs, d))
+    ]
+    
+    if not sub_dirs:
+        print(f"在 {src_dir_abs} 下未找到任何子文件夹。")
+        return
+    
+    print(f"批量模式：共发现 {len(sub_dirs)} 个子文件夹，开始处理...\n")
+    
+    for idx, sub_name in enumerate(sub_dirs, 1):
+        sub_src = os.path.join(src_dir_abs, sub_name)
+        sub_dst = os.path.join(src_dir_abs, f"{sub_name}_扁平化")
+        
+        print(f"[{idx}/{len(sub_dirs)}] 正在处理: {sub_name}")
+        try:
+            flatten_directory(
+                src_dir=sub_src,
+                dst_dir=sub_dst,
+                separator=separator,
+            )
+        except Exception as e:
+            print(f"  ⚠️ 处理失败: {e}")
+        print()  # 空行分隔
+    
+    print("批量处理全部完成！")
+
+
 if __name__ == '__main__':
     # 使用示例
-    src_dir = "/Users/teacher/Downloads/260张图片去水印"
-    dst_dir = f"{src_dir}_扁平化"
-    flatten_directory(
-        src_dir=src_dir,
-        dst_dir=dst_dir,
-        separator='#',  # 可改为 '__'、'@' 等自定义分隔符
-    )
+    src_dir = "/Volumes/西数4T外置/百度网盘默认下载/47个文件夹/47个_分组"
+    
+    batch = True     # 批量模式：对 src_dir 下所有子文件夹分别扁平化
+    
+    separator = '#'  # 可改为 '__'、'@' 等自定义分隔符
+    
+    if batch:
+        flatten_batch(src_dir=src_dir, separator=separator)
+    else:
+        dst_dir = f"{src_dir}_扁平化"
+        flatten_directory(
+            src_dir=src_dir,
+            dst_dir=dst_dir,
+            separator=separator,
+        )

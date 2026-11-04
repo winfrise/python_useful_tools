@@ -39,6 +39,9 @@ def unflatten_directory(
         file_path = os.path.join(src_dir, filename)
         if not os.path.isfile(file_path):
             continue
+
+        if filename.startswith('.'):
+            continue
         files_to_process.append(filename)
 
     if not files_to_process:
@@ -141,7 +144,7 @@ def _merge_empty_segments(segments: list) -> list:
 
 if __name__ == '__main__':
     # 使用示例
-    src_dir = "/Users/teacher/Downloads/260张图片去水印_扁平化"
+    src_dir = "/Volumes/西数4T外置/百度网盘默认下载/47个文件夹/test/组001_扁平化"
     dst_dir = f"{src_dir}_还原目录"
     unflatten_directory(
         src_dir=src_dir,

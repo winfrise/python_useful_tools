@@ -144,10 +144,37 @@ def _merge_empty_segments(segments: list) -> list:
 
 if __name__ == '__main__':
     # 使用示例
-    src_dir = "/Volumes/西数4T外置/百度网盘默认下载/47个文件夹/test/组001_扁平化"
+    src_dir = "/Volumes/西数4T外置/百度网盘默认下载/47个文件夹/test"
     dst_dir = f"{src_dir}_还原目录"
-    unflatten_directory(
-        src_dir=src_dir,
-        dst_dir=dst_dir,
-        separator='#',  # 应与扁平化时使用的分隔符保持一致
-    )
+    batch = True
+    separator = "#"
+
+    if batch:
+        # 批量逻辑：遍历 src_dir 下的子文件夹，分别还原到同一个 dst_dir
+        sub_dirs = [
+            name for name in os.listdir(src_dir)
+            if os.path.isdir(os.path.join(src_dir, name))
+        ]
+        if not sub_dirs:
+            print(f"源文件夹下没有子文件夹，无需批量还原: {src_dir}")
+        
+        print(f"批量还原开始，共 {len(sub_dirs)} 个子文件夹")
+        print("-" * 50)
+
+
+        for sub_name in sub_dirs:
+            sub_src = os.path.join(src_dir, sub_name)
+            # 每个子文件夹的还原结果放到 dst_dir/<子文件夹名> 下，避免混淆
+            sub_dst = os.path.join(dst_dir, sub_name)
+            print(f"[处理] {sub_name}")
+            unflatten_directory(sub_src, sub_dst, separator)
+            print("-" * 50)
+
+        print(f"批量还原完成！共处理 {len(sub_dirs)} 个子文件夹")
+
+    else:
+        unflatten_directory(
+            src_dir=src_dir,
+            dst_dir=dst_dir,
+            separator=separator,  # 应与扁平化时使用的分隔符保持一致
+        )

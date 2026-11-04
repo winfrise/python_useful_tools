@@ -144,10 +144,10 @@ def _merge_empty_segments(segments: list) -> list:
 
 if __name__ == '__main__':
     # 使用示例
-    src_dir = "/Volumes/西数4T外置/百度网盘默认下载/47个文件夹/test"
+    src_dir = "/Volumes/西数4T外置/大量去水印/47组去水印完成"
     dst_dir = f"{src_dir}_还原目录"
     batch = True
-    separator = "__"
+    separator = "#" # __
 
     if batch:
         # 批量逻辑：遍历 src_dir 下的子文件夹，分别还原到同一个 dst_dir

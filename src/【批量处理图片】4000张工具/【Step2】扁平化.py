@@ -123,7 +123,7 @@ if __name__ == '__main__':
     
     batch = True     # 批量模式：对 src_dir 下所有子文件夹分别扁平化
     
-    separator = '#'  # 可改为 '__'、'@' 等自定义分隔符
+    separator = '__'  # 可改为 '__'、'@' 等自定义分隔符
     
     if batch:
         flatten_batch(src_dir=src_dir, separator=separator)

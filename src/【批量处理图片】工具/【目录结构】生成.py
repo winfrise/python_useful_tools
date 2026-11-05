@@ -42,6 +42,10 @@ def generate_directory_structure(folder_path: str, output_file: str = None) -> s
             return node
         
         for entry in entries:
+            # 跳过点开头的文件和目录
+            if entry.startswith('.'):
+                continue
+
             entry_path = os.path.join(path, entry)
             # 跳过输出文件自身
             if os.path.abspath(entry_path) == output_file:
@@ -68,6 +72,10 @@ def generate_directory_structure(folder_path: str, output_file: str = None) -> s
         raise PermissionError(f"无权限读取文件夹: {folder_path}") from e
     
     for entry in entries:
+        # 跳过点开头的文件和目录
+        if entry.startswith('.'):
+            continue
+        
         entry_path = os.path.join(folder_path, entry)
         if os.path.abspath(entry_path) == output_file:
             continue

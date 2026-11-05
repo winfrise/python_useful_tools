@@ -96,10 +96,10 @@ def restore_directory_structure(source_folder: str,
 
 if __name__ == "__main__":
 
-    source_folder="/Volumes/西数4T外置/大量去水印/待恢复"
-    structure_file="/Volumes/西数4T外置/大量去水印/test.json"
-    output_folder=f"{source_folder}_恢复目录"
-    mode="move"  # 可选值: copy | move
+    source_folder="/Volumes/西数4T外置/大量去水印/test_扁平化2"
+    structure_file="/Volumes/西数4T外置/大量去水印/test_20261105103527552.json"
+    output_folder=f"{source_folder}_恢复目录33"
+    mode="copy"  # 可选值: copy | move
 
     restore_directory_structure(
         source_folder=source_folder,

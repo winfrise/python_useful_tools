@@ -75,7 +75,7 @@ def generate_directory_structure(folder_path: str, output_file: str = None) -> s
         # 跳过点开头的文件和目录
         if entry.startswith('.'):
             continue
-        
+
         entry_path = os.path.join(folder_path, entry)
         if os.path.abspath(entry_path) == output_file:
             continue
@@ -101,7 +101,9 @@ def generate_directory_structure(folder_path: str, output_file: str = None) -> s
 
 # 1. 生成目录结构文件
 folder_path = "/Volumes/西数4T外置/大量去水印/test"
-output_file = "/Volumes/西数4T外置/大量去水印/test.json"
+
+timestamp = datetime.now().strftime("%Y%m%d%H%M%S%f")[:17] 
+output_file = f"{folder_path}_{timestamp}.json"
 
 structure_file = generate_directory_structure(
     folder_path=folder_path,

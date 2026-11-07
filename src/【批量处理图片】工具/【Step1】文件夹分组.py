@@ -145,7 +145,7 @@ if __name__ == "__main__":
     input_dir = "/Volumes/西数4T外置/大量去水印/20261105-2/第四批截图"
     output_dir = f"{input_dir}_分组"
     mode = "copy" # copy 或 move
-    folder_count = 10
+    folder_count = 6
 
     group_folders(
         input_dir=input_dir,

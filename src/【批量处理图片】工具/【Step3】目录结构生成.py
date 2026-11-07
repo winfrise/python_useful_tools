@@ -2,6 +2,7 @@ import os
 import re
 import json
 from datetime import datetime
+from collections import defaultdict  
 
 
 def natural_sort_key(name: str):
@@ -40,6 +41,8 @@ def generate_directory_structure(folder_path: str, output_file: str = None) -> s
         "type": "directory",
         "children": []
     }
+    # 统计文件名出现次数
+    file_name_count = defaultdict(int)
     
     def scan_directory(path: str) -> dict:
         """递归扫描目录"""
@@ -76,6 +79,7 @@ def generate_directory_structure(folder_path: str, output_file: str = None) -> s
                     "type": "file",
                     "size": size
                 })
+                file_name_count[entry] += 1      # ← 新增这一行
         return node
     
     # 扫描根目录下的所有条目
@@ -104,16 +108,29 @@ def generate_directory_structure(folder_path: str, output_file: str = None) -> s
                 "type": "file",
                 "size": size
             })
+            file_name_count[entry] += 1      # ← 新增这一行
     
     # 写入JSON
     with open(output_file, "w", encoding="utf-8") as f:
         json.dump(structure, f, ensure_ascii=False, indent=2)
-    
+
+
+    # ===== 打印重复文件名 =====
+    duplicates = {name: count for name, count in file_name_count.items() if count > 1}
+    if duplicates:
+        print("\n===== 重复文件名统计 =====")
+        for name in sorted(duplicates, key=lambda x: (-duplicates[x], natural_sort_key(x))):
+            print(f"{name} 出现 {duplicates[name]} 次")
+        print(f"共 {len(duplicates)} 个文件名存在重复。")
+    else:
+        print("\n没有发现重复的文件名。")
+    # =========================
+
     return output_file
 
 if __name__ == "__main__":
     # 1. 生成目录结构文件
-    folder_path = "/Volumes/西数4T外置/大量去水印/test"
+    folder_path = "/Volumes/西数4T外置/大量去水印/20261105-2/第四批截图"
 
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S%f")[:17] 
     output_file = f"{folder_path}_{timestamp}.json"
